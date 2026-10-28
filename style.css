@@ -1,0 +1,585 @@
+/* ==========================================================================
+   INVITO DI LAUREA — MATTIA
+   Concept: "fascicolo di selezione" — il cane come Direttore delle Selezioni,
+   un test di reattività da superare, sblocco con timbro ufficiale.
+   Palette: carta/inchiostro + un solo accento rosso (timbro) + verde (zona idonea)
+   Type: Oswald (display, da maglia da gara) + Inter (corpo) + JetBrains Mono (fascicolo)
+   ========================================================================== */
+
+:root{
+  /* ---- base: carta da dossier, non bianco puro ---- */
+  --bg:            #F4EFE3;
+  --bg-raised:     #FFFFFF;
+  --ink:           #1D1A16;
+  --ink-soft:      #4F4A3F;
+  --muted:         #948D7B;
+  --line:          #E4DBC7;
+  --line-strong:   #D5C8AC;
+  --ink-invert:    #F4EFE3;
+
+  /* accento primario: rosso timbro — azione, allarme, autorizzazione */
+  --red:           #C73527;
+  --red-deep:      #9C2A1F;
+  --red-tint:      #F7DEDA;
+
+  /* accento funzionale: verde — zona idonea, esito positivo (logica da semaforo) */
+  --green:         #3C7A4E;
+  --green-deep:    #2A5B38;
+  --green-tint:    #DEEBE1;
+
+  /* ---- tipografia ---- */
+  --font-display: 'Oswald', 'Inter', -apple-system, sans-serif;
+  --font-body:    'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono:    'JetBrains Mono', ui-monospace, 'SF Mono', Consolas, monospace;
+
+  /* ---- ritmo: squadrato, da modulo ufficiale — angoli più piccoli del solito */
+  --radius-s:  6px;
+  --radius-m:  10px;
+  --radius-l:  16px;
+  --shadow-soft: 0 1px 2px rgba(29,26,22,.06), 0 8px 22px rgba(29,26,22,.08);
+  --shadow-lift: 0 3px 8px rgba(29,26,22,.10), 0 16px 36px rgba(29,26,22,.14);
+
+  --ease-out: cubic-bezier(.16,1,.3,1);
+  --ease-spring: cubic-bezier(.34,1.6,.64,1);
+
+  color-scheme: light;
+}
+
+/* ---------------------------------------------------------------------- */
+/* RESET DI BASE                                                          */
+/* ---------------------------------------------------------------------- */
+*, *::before, *::after{ box-sizing: border-box; }
+html{ -webkit-text-size-adjust: 100%; }
+html, body{ height: 100%; }
+body{
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+  overscroll-behavior-y: none;
+}
+img{ max-width: 100%; display: block; }
+button{ font: inherit; color: inherit; background: none; border: 0; cursor: pointer; }
+a{ color: inherit; }
+h1, h2, p{ margin: 0; }
+
+:focus-visible{
+  outline: 2px solid var(--red-deep);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+@media (prefers-reduced-motion: reduce){
+  *, *::before, *::after{
+    animation-duration: .001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+/* GRAIN — texture leggerissima, sensazione di carta da fascicolo          */
+/* ---------------------------------------------------------------------- */
+.grain{
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 5;
+  opacity: .045;
+  mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+/* ---------------------------------------------------------------------- */
+/* TOGGLE AUDIO                                                            */
+/* ---------------------------------------------------------------------- */
+.sound-toggle{
+  position: fixed;
+  top: 18px;
+  right: 18px;
+  z-index: 110;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--bg-raised);
+  border: 1px solid var(--line-strong);
+  color: var(--ink-soft);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+  box-shadow: var(--shadow-soft);
+  transition: transform .2s var(--ease-out), color .2s ease;
+}
+.sound-toggle:hover{ transform: translateY(-1px) scale(1.04); }
+.sound-toggle[aria-pressed="false"]{ color: var(--muted); opacity: .55; }
+
+/* ---------------------------------------------------------------------- */
+/* LAYOUT GENERALE                                                         */
+/* ---------------------------------------------------------------------- */
+.app{
+  position: relative;
+  min-height: 100dvh;
+  overflow: hidden;
+}
+
+.screen{
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 88px 24px 56px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(14px);
+  transition: opacity .55s var(--ease-out), transform .55s var(--ease-out), visibility 0s linear .55s;
+  overflow-y: auto;
+}
+.screen[data-state="active"]{
+  position: relative;
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  transition: opacity .55s var(--ease-out), transform .55s var(--ease-out);
+}
+.screen[data-state="leaving"]{
+  opacity: 0;
+  transform: translateY(-14px);
+}
+
+.screen-inner{
+  width: 100%;
+  max-width: 460px;
+  text-align: center;
+  margin: 0 auto;
+}
+.screen-inner-wide{ max-width: 540px; }
+
+/* ---------------------------------------------------------------------- */
+/* TIPOGRAFIA                                                              */
+/* ---------------------------------------------------------------------- */
+.eyebrow{
+  display: inline-block;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: .12em;
+  text-transform: uppercase;
+  color: var(--muted);
+  border: 1px solid var(--line-strong);
+  padding: 4px 11px;
+  border-radius: 999px;
+  margin-bottom: 22px;
+}
+.eyebrow-stamp{ color: var(--red-deep); border-color: var(--red-tint); background: var(--red-tint); }
+
+.display{
+  font-family: var(--font-display);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+}
+.display-xl{ font-size: clamp(2.3rem, 9vw, 3.4rem); line-height: 1.04; }
+.display-lg{ font-size: clamp(2rem, 7.5vw, 2.9rem); line-height: 1.05; margin-bottom: 14px; }
+.display-md{ font-size: clamp(1.5rem, 6vw, 2rem); line-height: 1.1; margin-bottom: 10px; }
+
+.lede{
+  margin-top: 18px;
+  font-size: 1.05rem;
+  line-height: 1.55;
+  color: var(--ink-soft);
+  max-width: 38ch;
+  margin-left: auto;
+  margin-right: auto;
+}
+.lede-small{ margin-top: 10px; font-size: .9rem; color: var(--muted); }
+
+.footnote{
+  margin-top: 26px;
+  font-size: .82rem;
+  color: var(--muted);
+  font-style: italic;
+}
+
+/* ---------------------------------------------------------------------- */
+/* BOTTONI                                                                 */
+/* ---------------------------------------------------------------------- */
+.btn{
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  justify-content: center;
+  text-decoration: none;
+  border-radius: var(--radius-s);
+  font-family: var(--font-display);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: .03em;
+  font-size: .92rem;
+  padding: 15px 26px;
+  min-height: 52px;
+  transition: transform .22s var(--ease-spring), box-shadow .22s ease, background .22s ease;
+}
+.btn-primary{
+  background: var(--ink);
+  color: var(--ink-invert);
+  box-shadow: var(--shadow-soft);
+  margin-top: 32px;
+}
+.btn-primary:hover{
+  background: var(--red-deep);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lift);
+}
+.btn-primary:active{ transform: translateY(0) scale(.97); }
+.btn-large{ padding: 17px 30px; font-size: .96rem; width: 100%; max-width: 320px; }
+.btn-arrow{ transition: transform .22s var(--ease-out); }
+.btn-primary:hover .btn-arrow{ transform: translateX(3px); }
+
+.btn-stop{
+  margin-top: 28px;
+}
+
+.btn-text{
+  font-family: var(--font-body);
+  font-size: .88rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-color: var(--line-strong);
+}
+.btn-text:hover{ color: var(--red-deep); text-decoration-color: var(--red-tint); }
+
+.cta-group{
+  margin-top: 34px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.cta-secondary-row{
+  margin-top: 16px;
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+/* ---------------------------------------------------------------------- */
+/* RITRATTO DEL CANE — "Direttore delle Selezioni"                        */
+/* ---------------------------------------------------------------------- */
+.dog-portrait{
+  position: relative;
+  width: 148px;
+  height: 148px;
+  margin: 0 auto 22px;
+}
+.dog-portrait-small{
+  width: 72px;
+  height: 72px;
+  margin: 0;
+  flex-shrink: 0;
+}
+.dog-photo{
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  object-fit: cover;
+  border-radius: 50%;
+  border: 3px solid var(--bg-raised);
+  outline: 2px solid var(--line-strong);
+  box-shadow: var(--shadow-soft);
+}
+.dog-fallback{
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  display: none;
+  color: var(--ink-soft);
+  border-radius: 50%;
+  border: 3px solid var(--bg-raised);
+  outline: 2px solid var(--line-strong);
+}
+.dog-fallback-bg{ fill: var(--line); }
+
+.dog-title-tag{
+  position: absolute;
+  left: 50%;
+  bottom: -10px;
+  transform: translateX(-50%);
+  white-space: nowrap;
+  background: var(--ink);
+  color: var(--ink-invert);
+  font-family: var(--font-mono);
+  font-size: 10px;
+  letter-spacing: .04em;
+  padding: 4px 10px;
+  border-radius: 999px;
+  box-shadow: var(--shadow-soft);
+}
+
+/* ---------------------------------------------------------------------- */
+/* SCHERMATA TEST — intestazione con cane + verdetto                      */
+/* ---------------------------------------------------------------------- */
+.game-head{
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 30px;
+  text-align: left;
+}
+.verdict-line{
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 1rem;
+  color: var(--ink);
+  transition: color .25s ease;
+}
+.verdict-line[data-tone="success"]{ color: var(--green-deep); }
+.verdict-line[data-tone="fail"]{ color: var(--red-deep); }
+
+/* ---------------------------------------------------------------------- */
+/* LA BARRA DEL TEST — gauge da esame, indicatore + zona idonea           */
+/* ---------------------------------------------------------------------- */
+.reflex-track{
+  position: relative;
+  width: 100%;
+  height: 64px;
+  background: var(--bg-raised);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-m);
+  box-shadow: var(--shadow-soft);
+  cursor: pointer;
+  touch-action: none;
+  user-select: none;
+  overflow: hidden;
+}
+/* tacche da gauge, puramente decorative ma coerenti col tema "strumento di misura" */
+.reflex-track::before{
+  content: "";
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    90deg, var(--line) 0 1px, transparent 1px 5%
+  );
+  opacity: .6;
+  pointer-events: none;
+}
+
+.reflex-zone{
+  position: absolute;
+  top: 6px;
+  bottom: 6px;
+  left: var(--zone-left, 35%);
+  width: var(--zone-width, 24%);
+  background: var(--green-tint);
+  border: 2px solid var(--green);
+  border-radius: var(--radius-s);
+  transition: left .3s var(--ease-out);
+}
+
+.reflex-indicator{
+  position: absolute;
+  top: 2px;
+  bottom: 2px;
+  left: var(--indicator-pos, 0%);
+  width: 4px;
+  margin-left: -2px;
+  background: var(--red);
+  border-radius: 2px;
+  box-shadow: 0 0 0 4px var(--red-tint);
+}
+.reflex-indicator.is-stopped{
+  transition: background .2s ease, box-shadow .2s ease;
+}
+.reflex-indicator.is-stopped.is-success{
+  background: var(--green-deep);
+  box-shadow: 0 0 0 4px var(--green-tint);
+}
+.reflex-indicator.is-stopped.is-fail{
+  background: var(--red-deep);
+  box-shadow: 0 0 0 4px var(--red-tint);
+}
+
+/* ---------------------------------------------------------------------- */
+/* PALLINI DEI TENTATIVI                                                   */
+/* ---------------------------------------------------------------------- */
+.attempts-row{
+  margin-top: 22px;
+  display: flex;
+  gap: 10px;
+  justify-content: center;
+}
+.attempt-dot{
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--line-strong);
+  transition: background .25s ease, transform .25s var(--ease-spring);
+}
+.attempt-dot.is-current{ transform: scale(1.3); background: var(--ink-soft); }
+.attempt-dot.is-success{ background: var(--green); }
+.attempt-dot.is-fail{ background: var(--red); }
+
+/* ---------------------------------------------------------------------- */
+/* TIMBRO DI AUTORIZZAZIONE — il momento firma del sito                   */
+/* ---------------------------------------------------------------------- */
+.stamp-overlay{
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity .35s ease;
+}
+.stamp-overlay.is-active{ opacity: 1; }
+
+.stamp{
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 22px 38px;
+  border: 5px solid var(--red);
+  border-radius: 14px;
+  color: var(--red);
+  background: color-mix(in srgb, var(--red-tint) 55%, transparent);
+  transform: scale(2.6) rotate(-16deg);
+  opacity: 0;
+  filter: blur(1px);
+}
+.stamp-overlay.is-active .stamp{
+  animation: stamp-impact .75s var(--ease-out) forwards;
+}
+@keyframes stamp-impact{
+  0%{ transform: scale(2.6) rotate(-16deg); opacity: 0; filter: blur(2px); }
+  55%{ transform: scale(.92) rotate(-9deg); opacity: 1; filter: blur(0); }
+  70%{ transform: scale(1.06) rotate(-10deg); }
+  100%{ transform: scale(1) rotate(-9deg); opacity: 1; }
+}
+.stamp-line{
+  font-family: var(--font-mono);
+  text-transform: uppercase;
+  letter-spacing: .08em;
+}
+.stamp-line-top, .stamp-line-bottom{ font-size: 11px; }
+.stamp-line-main{
+  font-family: var(--font-display);
+  font-size: clamp(1.8rem, 9vw, 2.6rem);
+  font-weight: 700;
+  letter-spacing: .04em;
+  line-height: 1.1;
+}
+
+/* Scossa leggera dello schermo all'impatto del timbro */
+.app.is-stamped{ animation: stamp-shake .4s var(--ease-out); }
+@keyframes stamp-shake{
+  0%, 100%{ transform: translate(0,0); }
+  20%{ transform: translate(-4px, 2px); }
+  40%{ transform: translate(3px, -2px); }
+  60%{ transform: translate(-2px, 1px); }
+  80%{ transform: translate(2px, -1px); }
+}
+
+/* ---------------------------------------------------------------------- */
+/* SCAGLIE D'INCHIOSTRO — particelle minime dal punto d'impatto del timbro */
+/* ---------------------------------------------------------------------- */
+.confetti-layer{
+  position: fixed;
+  inset: 0;
+  overflow: visible;
+  pointer-events: none;
+  z-index: 95;
+}
+.ink-fleck{
+  position: absolute;
+  top: 50%; left: 50%;
+  width: var(--size, 6px);
+  height: var(--size, 6px);
+  background: var(--fleck-color, var(--red));
+  border-radius: var(--fleck-radius, 2px);
+  opacity: 0;
+  animation: fleck-burst var(--dur, .7s) var(--ease-out) forwards;
+  animation-delay: var(--delay, 0s);
+}
+@keyframes fleck-burst{
+  0%{ opacity: 0; transform: translate(0,0) rotate(0deg) scale(.5); }
+  12%{ opacity: 1; }
+  100%{
+    opacity: 0;
+    transform:
+      translate(var(--tx, 30px), var(--ty, -40px))
+      rotate(var(--rot, 120deg))
+      scale(1);
+  }
+}
+
+/* ---------------------------------------------------------------------- */
+/* DETTAGLI EVENTO                                                        */
+/* ---------------------------------------------------------------------- */
+.details-card{
+  margin-top: 20px;
+  background: var(--bg-raised);
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-l);
+  padding: 6px 22px;
+  box-shadow: var(--shadow-lift);
+  text-align: left;
+}
+.details-row{
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 16px;
+  padding: 15px 0;
+  border-bottom: 1px solid var(--line);
+}
+.details-row:last-child{ border-bottom: 0; }
+.details-label{
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  flex-shrink: 0;
+}
+.details-value{
+  font-family: var(--font-display);
+  font-weight: 600;
+  letter-spacing: .01em;
+  font-size: 1.02rem;
+  text-align: right;
+  color: var(--ink);
+}
+.maps-link{
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  text-decoration: none;
+  color: var(--red-deep);
+  border-bottom: 1px solid var(--red);
+}
+.maps-arrow{ font-size: .85em; }
+
+/* ---------------------------------------------------------------------- */
+/* RESPONSIVE                                                             */
+/* ---------------------------------------------------------------------- */
+@media (min-width: 640px){
+  .screen{ padding: 64px 24px; }
+  .details-value{ font-size: 1.08rem; }
+}
+
+@media (min-width: 900px){
+  .display-xl{ font-size: 3.9rem; }
+}
+
+@media (max-height: 560px){
+  .screen{ padding: 72px 24px 36px; align-items: flex-start; }
+}
