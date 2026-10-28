@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Mattia — Invito alla laurea</title>
+<meta name="description" content="Non sei ancora invitato. Prima devi superare il cane.">
+
+<!-- Tipografia: titolo bold condensato da maglia da gara + corpo testo neutro + mono da fascicolo -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Oswald:wght@500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="grain" aria-hidden="true"></div>
+
+<button class="sound-toggle" id="soundToggle" type="button" aria-pressed="true" aria-label="Disattiva audio">
+  <span id="soundIcon">♪</span>
+</button>
+
+<!-- Timbro di autorizzazione: si schiaccia sullo schermo al momento dello sblocco -->
+<div class="stamp-overlay" id="stampOverlay" aria-hidden="true">
+  <div class="stamp" id="stampMark">
+    <span class="stamp-line stamp-line-top">Comitato di Selezione</span>
+    <span class="stamp-line stamp-line-main">IDONEO</span>
+    <span class="stamp-line stamp-line-bottom">Accesso autorizzato</span>
+  </div>
+</div>
+
+<!-- Scaglie d'inchiostro che schizzano dal punto d'impatto del timbro -->
+<div class="confetti-layer" id="confettiLayer" aria-hidden="true"></div>
+
+<main class="app" id="app">
+
+  <!-- ============ SCHERMATA 1 — APERTURA ============ -->
+  <section class="screen screen-intro" id="screenIntro" data-state="active" aria-hidden="false">
+    <div class="screen-inner">
+      <p class="eyebrow">FASCICOLO RISERVATO</p>
+
+      <div class="dog-portrait" id="introDogPortrait">
+        <img class="dog-photo" id="dogImgIntro" src="assets/cane-principale.jpg" alt="" draggable="false">
+        <svg class="dog-fallback" id="dogFallbackIntro" viewBox="0 0 200 200" role="img" aria-label="Illustrazione di un cane">
+          <circle cx="100" cy="100" r="98" class="dog-fallback-bg"/>
+          <g class="dog-fallback-lines" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M60 150c0-30 15-45 40-45s40 15 40 45"/>
+            <ellipse cx="100" cy="95" rx="34" ry="30"/>
+            <path d="M72 74c-6-14-2-26 6-30 6 10 6 20 4 30"/>
+            <path d="M128 74c6-14 2-26-6-30-6 10-6 20-4 30"/>
+            <circle cx="88" cy="92" r="2.4" fill="currentColor" stroke="none"/>
+            <circle cx="112" cy="92" r="2.4" fill="currentColor" stroke="none"/>
+            <path d="M92 108q8 6 16 0"/>
+          </g>
+        </svg>
+        <span class="dog-title-tag" id="dogTitleTag">Direttore delle Selezioni</span>
+      </div>
+
+      <h1 class="display display-xl">Non sei<br>ancora invitato.</h1>
+      <p class="lede">
+        <span id="nameInline">Mattia</span> si laurea in <span id="degreeInlineIntro">Scienze Motorie</span>.
+        Prima di festeggiare, devi passare la sua valutazione ufficiale.
+      </p>
+      <button class="btn btn-primary" id="startBtn" type="button">
+        Sottoponiti alla prova
+        <span class="btn-arrow" aria-hidden="true">→</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- ============ SCHERMATA 2 — BRIEFING ============ -->
+  <section class="screen screen-briefing" id="screenBriefing" data-state="idle" aria-hidden="true">
+    <div class="screen-inner">
+      <p class="eyebrow">PROTOCOLLO DI VALUTAZIONE</p>
+      <h2 class="display display-md">Test di reattività.</h2>
+      <p class="lede">
+        Un indicatore scorre sulla barra. Fermalo dentro la zona idonea.
+        Hai <strong id="attemptsInBriefing">3</strong> tentativi.
+      </p>
+      <p class="lede lede-small">Tocca la barra, clicca, oppure premi Spazio al momento giusto.</p>
+      <button class="btn btn-primary" id="beginGameBtn" type="button">
+        Inizia il test
+        <span class="btn-arrow" aria-hidden="true">→</span>
+      </button>
+    </div>
+  </section>
+
+  <!-- ============ SCHERMATA 3 — IL TEST ============ -->
+  <section class="screen screen-game" id="screenGame" data-state="idle" aria-hidden="true">
+    <div class="screen-inner">
+      <p class="eyebrow">TEST IN CORSO</p>
+
+      <div class="game-head">
+        <div class="dog-portrait dog-portrait-small">
+          <img class="dog-photo" id="dogImgGame" src="assets/cane-principale.jpg" alt="" draggable="false">
+          <svg class="dog-fallback" id="dogFallbackGame" viewBox="0 0 200 200" role="img" aria-label="Illustrazione di un cane">
+            <circle cx="100" cy="100" r="98" class="dog-fallback-bg"/>
+            <g class="dog-fallback-lines" fill="none" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M60 150c0-30 15-45 40-45s40 15 40 45"/>
+              <ellipse cx="100" cy="95" rx="34" ry="30"/>
+              <path d="M72 74c-6-14-2-26 6-30 6 10 6 20 4 30"/>
+              <path d="M128 74c6-14 2-26-6-30-6 10-6 20-4 30"/>
+              <circle cx="88" cy="92" r="2.4" fill="currentColor" stroke="none"/>
+              <circle cx="112" cy="92" r="2.4" fill="currentColor" stroke="none"/>
+              <path d="M92 108q8 6 16 0"/>
+            </g>
+          </svg>
+        </div>
+        <p class="verdict-line" id="verdictLine" role="status" aria-live="polite">Pronto quando vuoi.</p>
+      </div>
+
+      <!-- La barra del test: indicatore animato + zona idonea -->
+      <div
+        class="reflex-track"
+        id="reflexTrack"
+        role="button"
+        tabindex="0"
+        aria-label="Barra del test di reattività. Premi Spazio, Invio, oppure tocca o clicca per fermare l'indicatore nella zona idonea."
+      >
+        <div class="reflex-zone" id="reflexZone" aria-hidden="true"></div>
+        <div class="reflex-indicator" id="reflexIndicator" aria-hidden="true"></div>
+      </div>
+
+      <button class="btn btn-primary btn-stop" id="stopBtn" type="button">Ferma qui</button>
+
+      <div class="attempts-row" aria-hidden="true">
+        <span class="attempt-dot" id="dot1"></span>
+        <span class="attempt-dot" id="dot2"></span>
+        <span class="attempt-dot" id="dot3"></span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ SCHERMATA 4 — REVEAL ============ -->
+  <section class="screen screen-reveal" id="screenReveal" data-state="idle" aria-hidden="true">
+    <div class="screen-inner screen-inner-wide">
+
+      <p class="eyebrow eyebrow-stamp">ACCESSO AUTORIZZATO</p>
+      <h2 class="display display-lg" id="revealTitle">
+        <span id="nameInline2">Mattia</span> si laurea.<br>Tu sei dentro.
+      </h2>
+      <p class="lede" id="dogSignoff">—</p>
+
+      <div class="details-card" id="detailsCard">
+        <div class="details-row">
+          <span class="details-label">Laurea</span>
+          <span class="details-value" id="detailDegree">—</span>
+        </div>
+        <div class="details-row">
+          <span class="details-label">Data</span>
+          <span class="details-value" id="detailDate">—</span>
+        </div>
+        <div class="details-row">
+          <span class="details-label">Ora</span>
+          <span class="details-value" id="detailTime">—</span>
+        </div>
+        <div class="details-row">
+          <span class="details-label">Luogo</span>
+          <span class="details-value" id="detailVenue">—</span>
+        </div>
+        <div class="details-row">
+          <span class="details-label">Indirizzo</span>
+          <span class="details-value">
+            <a class="maps-link" id="detailMapsLink" href="#" target="_blank" rel="noopener">
+              <span id="detailAddress">—</span>
+              <span class="maps-arrow" aria-hidden="true">↗</span>
+            </a>
+          </span>
+        </div>
+        <div class="details-row" id="detailNotesRow">
+          <span class="details-label">Note</span>
+          <span class="details-value" id="detailNotes">—</span>
+        </div>
+      </div>
+
+      <div class="cta-group">
+        <a class="btn btn-primary btn-large" id="whatsappBtn" href="#" target="_blank" rel="noopener">
+          Conferma la presenza
+          <span class="btn-arrow" aria-hidden="true">→</span>
+        </a>
+        <div class="cta-secondary-row">
+          <button class="btn-text" id="calendarBtn" type="button">Aggiungi al calendario</button>
+          <button class="btn-text" id="copyBtn" type="button">Copia indirizzo</button>
+        </div>
+      </div>
+
+      <p class="footnote" id="finalLine">Il fascicolo è ufficialmente chiuso.</p>
+    </div>
+  </section>
+
+</main>
+
+<script src="script.js"></script>
+</body>
+</html>
