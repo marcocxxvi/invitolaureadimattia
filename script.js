@@ -23,7 +23,7 @@ const CONFIG = {
   // Percorso della foto del cane: la stessa immagine è usata sia nella
   // schermata iniziale sia in quella del test. Vedi il README per dove
   // caricare il file.
-  dogPhoto: "assets/cane-principale.jpg",
+  dogPhoto: "cane-principale.jpg",
 
   // Evento — lascia i segnaposto finché non hai i dati reali.
   date: "[DA COMPILARE]",          // es. "12 settembre 2026"
